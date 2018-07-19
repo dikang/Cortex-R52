@@ -1,0 +1,232 @@
+<html xmlns:fn="http://www.w3.org/2005/xpath-functions">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Cortex-R52 Startup Example Code for Arm Compiler 6</title>
+<style type="text/css">
+    body { font-size: 62.5%;    /* default 1.0em = 16px, so 62.5% of 16 = 10. Therefore, 1.0em now = 10px, 1.2em now = 12px etc. */
+        font-family: Verdana, Arial, "Lucida Grande", sans-serif; margin: 10px; padding: 0; background: #fff; min-width: 999px; }
+    /* Content Styling */
+    .para { font-size: 1.2em; margin-bottom: 0px; margin-top: 10px; }
+    p { font-size: 1.2em; margin-bottom: 0px; margin-top: 10px; }
+    h1 { font-size: 1.6em; color: #025066; margin-top: 0px; margin-bottom: 0px; }
+    h2 { font-size: 1.4em; font-weight: bold; color: #025066; margin-bottom: 0px; }
+    h3 { font-size: 1.2em; font-weight: bold; color: #025066; margin-bottom: 0px; }
+    a { color: #127490; }
+    a:hover { color: #014153; }
+    div.indent { margin-left:10px; margin-right: 10px; margin-bottom: 0px; margin-top: 10px; }
+    div.note { font-size: 1.0em; margin-left:10px; margin-right: 10px; margin-bottom: 0px; margin-top: 10px; }
+    .table { margin-top: 5px; margin-bottom: 5px; padding:0px; }
+    ul li { font-size: 1.0em; list-style-image: url(images/bullet_blue.png); }
+    div.toc ul li { font-size: 1.0em; list-style-image: url(images/bullet_blue.png); }
+    .table-cell { font-size: 75%; }
+    .image { margin-top: 5px; margin-bottom: 5px; padding:0px; }
+    .note { margin-bottom: 15px; background: #E0E0E0 }
+    .toc { font-size: 115%; margin-left: 20px; margin-top: 10px; margin-bottom: 15px; }
+    .italic { font-style: italic; }
+    .bold { font-weight: bold; }
+    .emphasis { font-weight: bold; font-style: italic; }
+    .underline { text-decoration: underline; }
+    .bold-underline { text-decoration: underline; font-weight: bold; }
+    .arg { font-family: 'Lucida Sans Typewriter', 'Courier New', Courier, monospace; color:#333399; }
+    .repl { font-style: italic; }
+    .code { font-size: 1.2em; margin-top: 2px; margin-left: 20px; margin-bottom: 2px; color: #333399;
+       font-family: 'Lucida Sans Typewriter', 'Courier New', Courier, monospace; }
+    .menu { font-weight: bold; }
+    .interface { font-weight: bold; }
+    ul {margin-top: 2px; margin-bottom: 5px; }
+    ol {list-style-type:decimal; margin-top: 2px; margin-bottom: 5px; }
+    ol ol {list-style-type:lower-alpha; margin-top: 2px; margin-bottom: 5px; }
+    ol ol ol {list-style-type:lower-roman; margin-top: 2px; margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+    
+    <a name="Cortex-R52%20Startup%20Example%20Code%20for%20Arm%20Compiler%206"></a><h1>Cortex-R52 Startup Example Code for Arm Compiler 6 - Arm®DS-5™</h1>
+    
+        <div class="para">This example shows the bare-metal startup code for the Cortex-R52 processor, including vector table, exception handlers, MPU, cache, TCM and FPU initialization, and is illustrated by a simple semihosted "sorts" example application.
+        Note: A DS-5 Ultimate Edition license is required to make full use of this example.</div>
+    
+
+    <div class="indent">
+        <a name="Purpose%20and%20scope"></a><h2>Purpose and scope</h2>
+        <div class="para">This example shows the bare-metal startup code for the Cortex-R52 processor, including vector table, exception handlers, MPU, cache, TCM and FPU initialization.
+        A semihosted "sorts" example is provided in sorts.c for demonstration purposes, that can be replaced by your own application code.
+        This example can be run on either the Cortex-R52 FVP model (as provided in DS-5 Ultimate Edition) or your own Cortex-R52-based target hardware.
+        This example can be used as a framework on which to build your own C/C++ applications.</div>
+
+        <div class="note"><div class="para">
+<div class="bold">Note</div>To rebuild, run and/or debug this example, a DS-5 Ultimate Edition license is required.</div></div>
+
+        <div class="para">This example uses HLT-based semihosting, selected at build-time by referring to the symbol <span class="arg">__use_hlt_semihosting</span>.</div>
+        <div class="para">A ready-made debug launch configuration <span class="arg">startup_Cortex-R52x1-FVP.launch</span> (to connect to the FVP model) is provided.</div>
+
+        <h3>Hardware and software requirements</h3>
+        <div class="para">To run this example on your own Cortex-R52-based target hardware, you will need:</div>
+        <ul>
+           <li><div class="para">Your target hardware and a suitable power supply for it</div></li>
+           <li><div class="para">DSTREAM debug hardware and a suitable power supply for it, and a JTAG cable to connect it to your target hardware</div></li>
+           <li><div class="para">A platform configuration for your target hardware, created with the Platform Configuration Editor (PCE)</div></li>
+        </ul>
+
+    </div>
+
+    <div class="indent">
+        <a name="Building%20the%20example"></a><h2>Building the example</h2>
+        <div class="para">This example is intended to be built with Arm Compiler 6 using the supplied Eclipse project, or directly on the command line with the supplied <span class="arg">makefile</span>.  If you wish to modify and rebuild the example, you must use Arm Compiler 6 to rebuild it.</div>
+        <div class="para">The Eclipse project is a managed builder project, that creates a makefile in the /Debug directory.</div>
+        <div class="para">The application executable is built to be loaded and run in RAM at address 0x0, but could be easily ported to platforms with RAM at other addresses simply by changing the code and data addresses in the scatter-file <span class="arg">scatter.scat</span>.</div>
+        <div class="para">The assembler startup code is assembled into Arm instructions and the C application code is compiled into Thumb instructions (with the <span class="arg">-mthumb</span> switch).</div>
+        
+        <div class="para">This example depends on semihosting support being provided by the debug system.
+DS-5 Debugger enables semihosting automatically if either symbols <span class="arg">__auto_semihosting</span> or <span class="arg">__semihosting_library_function</span> are present in an image.  Arm Compiler 5 and Arm Compiler 6 both add <span class="arg">__semihosting_library_function</span> automatically to an image at link time if that image uses any semihosting-using functions.  If compiling with gcc or an earlier release of armcc, use an alias symbol definition such as <span class="arg">void __auto_semihosting(void) __attribute__ ((alias("main")));</span> or turn on semihosting support in the debugger explicitly with <span class="arg">set semihosting enabled on</span>.</div>
+
+    </div>
+
+    <div class="indent">
+        <a name="Building%20on%20the%20command-line"></a><h2>Building on the command-line</h2>
+        <div class="para">To build the example on the command-line with the supplied <span class="arg">make</span> utility:</div>
+        <ul>
+           <li><div class="para">On Windows, open a <span class="interface">DS-5 Command Prompt</span> from the Start menu, run the <span class="arg">select_toolchain</span> utility, and select <span class="arg">Arm Compiler 6 (DS-5 built-in)</span> from the list</div></li>
+           <li><div class="para">On Linux, run the <span class="arg">suite_exec</span> utility with the <span class="arg">--toolchain</span> option to select the compiler and start a shell configured for the suite environment, for example: <span class="arg">~/DS-5/bin/suite_exec --toolchain "Arm Compiler 6 (DS-5 built-in)" bash</span>
+</div></li>
+        </ul>
+        <div class="para">Then navigate to the <span class="arg">...\startup_Cortex-R52</span> directory, and type:</div>
+        <div class="para"><span class="arg">make</span></div>
+        <div class="para">The usual <span class="arg">make</span> rules: <span class="arg">clean</span>, <span class="arg">all</span> and <span class="arg">rebuild</span> are provided in the <span class="arg">makefile</span>.</div>
+    </div>
+
+    
+    <div class="indent">
+        <a name="Building%20from%20Eclipse"></a><h2>Building from Eclipse</h2>
+        <div class="para">To build the supplied Eclipse projects:</div>
+        
+    <ol>
+        <li><div class="para">In the Project Explorer view, select the project you want to build.</div></li>
+        <li><div class="para">Select <span class="menu">Project<span class="para"> → </span>Build Project</span>.</div></li>
+    </ol>
+
+    </div>
+
+
+    <div class="indent">
+        <a name="Running%20the%20example%20on%20Cortex-R52x1%20FVP%20model"></a><h2>Running the example on Cortex-R52x1 FVP model</h2>
+        <ol>
+            <li><div class="para">Select <span class="menu">Run<span class="para"> → </span>Debug Configurations...</span>.</div></li>
+            <li><div class="para">Select <span class="arg">startup_Cortex-R52x1-FVP</span> from the list of DS-5 Debugger configurations.</div></li>
+            <li><div class="para">Click on <span class="interface">Debug</span> to start debugging.  The example executable will be downloaded to the target, and the program counter PC will be set to the entry point of the image.</div></li>
+            <li><div class="para">Debugging requires the DS-5 Debug perspective. If the Confirm Perspective Switch dialog box opens, click on
+                <span class="interface">Yes</span> to switch perspective.</div></li>
+            <li><div class="para">Run the executable (press F8). Text output appears in the <span class="interface">Target Console</span> view, similar to:</div></li>
+        </ol>
+<pre class="code">
+Cortex-R52 bare-metal startup example
+Floating point calculation using the FPU...
+Float result is        0.937500
+Float result should be 0.937500
+Insertion sort took 2 clock ticks
+Shell sort took 0 clock ticks
+Quick sort took 1 clock ticks
+</pre>
+        <div class="para">You can also run the example executable directly on the FVP model from the <span class="interface">DS-5 Command Prompt</span> with, for example:</div>
+<pre class="code">
+FVP_BaseR_Cortex-R52x1 -a startup_Cortex-R52.axf
+</pre>
+    </div>
+
+    <div class="indent">
+        <a name="Running%20the%20example%20on%20your%20Cortex-R52%20target%20hardware"></a><h2>Running the example on your Cortex-R52 target hardware</h2>
+        <ol>
+            <li><div class="para">Power-up your Cortex-R52 target hardware</div></li>
+            <li><div class="para">Select <span class="menu">Run<span class="para"> → </span>Debug Configurations...</span>.</div></li>
+            <li><div class="para">Select the platform configuration you created with PCE from the list of platforms.</div></li>
+            <li><div class="para">In the Connections panel, enter the USB: or TCP: IP address or name of your DSTREAM unit in the Debug Hardware Address field,
+                or click on <span class="interface">Browse</span> to select one from a list, otherwise an error will be reported:
+                <span class="arg">
+        <span class="arg">Launch configuration has errors: Configuration for connection type 'Bare Metal Debug' is not valid - Connection cannot be empty</span>
+</span>.</div></li>
+            <li><div class="para">Click on <span class="interface">Debug</span> to start debugging.  The example image will be downloaded to the target and program execution will be held at <span class="arg">Start</span>.</div></li>
+            <li><div class="para">Debugging requires the DS-5 Debug perspective. If the Confirm Perspective Switch dialog box opens, click on
+                <span class="interface">Yes</span> to switch perspective.</div></li>
+            <li><div class="para">Run the executable (press F8).  Text output appears in the <span class="interface">App Console</span> view, similar to:</div></li>
+        </ol>
+<pre class="code">
+Cortex-R52 bare-metal startup example
+Floating point calculation using the FPU...
+Float result is        0.937500
+Float result should be 0.937500
+Insertion sort took 2 clock ticks
+Shell sort took 0 clock ticks
+Quick sort took 1 clock ticks
+</pre>
+    </div>
+
+    <div class="indent">
+        <a name="Debugging%20the%20reset%20handler"></a><h2>Debugging the reset handler</h2>
+        <div class="para">To debug the reset handler, first disconnect any existing debug session, then power-cycle your Cortex-R52 target hardware, then load the executable
+(<span class="arg">startup_Cortex-R52.axf</span>) in the same way as before, selecting "Debug from entry point" in the <span class="interface">Debugger</span> tab.</div>
+        <div class="para">DS-5 Debugger will download the program's code and data sections to the target, and set the program counter PC to the entry point of the image
+at <span class="arg">Start</span>, at the reset entry in the vector table in <span class="arg">startup.s</span>.  The core starts-up in AArch32 EL2 (Hypervisor) mode.</div>
+
+        <ol>
+            <li>
+            <div class="para">In the <span class="interface">Registers</span> view, expand <span class="interface">Core</span> to see the core registers.</div>
+            </li>
+            <li>
+            <div class="para">Execute the <span class="arg">LDR PC, EL2_Reset_Addr</span> instruction by single-stepping (press F5) into <span class="arg">EL2_Reset_Handler</span>.
+      Notice the Program Counter (PC) change in the <span class="interface">Core</span> registers view.</div>
+            </li>
+            <li>
+            <div class="para">The first instructions inside <span class="arg">EL2_Reset_Handler</span> setup the EL2 vectors by writing to HVBAR, initialize HSCTLR, enable EL1 access to all IMP DEF registers by writing to HACTLR, and
+            setup the EL1 vectors by writing to VBAR.  In the <span class="interface">Registers</span> view, expand <span class="interface">System</span>.  Single-step (press F5) through these instructions to see these registers being written to.</div>
+            </li>
+            <li>
+            <div class="para">The next block of instructions inside <span class="arg">EL2_Reset_Handler</span> change mode to AArch32 EL2 (Hypervisor) mode.  Single-step (press F5) through these to the ERET instruction to see how this transition is set up, then single-step (press F5) the ERET instruction and see the Mode bits in the CPSR change to AArch32_SVC (EL1)</div>
+            </li>
+            <li>
+            <div class="para">The first block of instructions inside <span class="arg">EL1_Reset_Handler</span> disable the MPU and caches (in case they were left enabled from an earlier run) by performing a read/modify/write (MRC, BIC, MCR) of the System Control Register SCTLR.
+            In the <span class="interface">Registers</span> view, expand <span class="interface">System</span>, expand <span class="interface">Other</span>, then expand <span class="interface">SCTLR</span>.   Single-step (press F5) through these instructions and see the M, C and I bits being cleared (if they were previously set).</div>
+            </li>
+            <li>
+            <div class="para">The next instructions initialize the Stack Pointers for each mode, based on an address determined by <span class="arg">ARM_LIB_STACK</span> in the scatter-file <span class="arg">scatter.scat</span>, by switching into Abort, IRQ, FIQ and back to SVC mode (for each CPU, in a multi-core device).
+            Expand <span class="interface">Core</span> in <span class="interface">Registers</span> view, and single-step (press F5) through these instructions and see each mode being entered in turn and <span class="interface">SP</span> being initialized.</div>
+            </li>
+            <li>
+            <div class="para">The next block invalidates the Instruction and Data caches, if required.  Single-step (press F5) through this block.</div>
+            </li>
+            <li>
+            <div class="para">The next block illustrates basic TCM configuration, as the basis for exploration by the user.  These are conditionally assembled via the TCM switch, which is not active by default.</div>
+            </li>
+            <li>
+            <div class="para">The next block configures the MPU for 5 regions (Init/Flash, Code, Data, Stack/Heap, Peripherals) to addresses determined by the scatter-file <span class="arg">scatter.scat</span>.
+            In the <span class="interface">Registers</span> view, expand <span class="interface">System</span>, then expand <span class="interface">PMSA</span>.
+            Single-step (press F5) through these instructions, and see the base address, access control, limit address and enable being set in <span class="arg">PRBAR</span> and <span class="arg">PRLAR</span> for each region.</div>
+            </li>
+            <li>
+            <div class="para">The next block enables access to the FPU and switches on the FPU hardware, if present.  This is conditionally assembled-in only when assembling for Cortex-R52 with an FPU.
+            In the <span class="interface">Registers</span> view, expand <span class="interface">System</span>, expand <span class="interface">Other</span>, then expand <span class="interface">CPACR</span>.   Single-step (press F5) through these instructions to the ISB and see the cp10 and cp11 bits being set.
+            In the <span class="interface">Registers</span> view, expand <span class="interface">System</span>, expand <span class="interface">Float</span>, then expand <span class="interface">FPEXC</span>.   Single-step (press F5) through these instructions to the VMSR and see the EN bit being set.</div>
+            </li>
+            <li>
+            <div class="para">Finally, the MPU is enabled and code execution branches to <span class="arg">__main</span> to setup the C library run-time environment.  In a multi-core processor, all cores other than CPU0 are put into a WFI loop.</div>
+            </li>
+            <li>
+            <div class="para">Delete all breakpoints, and continue running (press F8) until the application terminates normally.</div>
+            </li>
+        </ol>
+    </div>
+
+    <h2>See also:</h2>
+<div class="indent"><ul>
+        <li><div class="para"><a href="https://developer.arm.com/docs/100953/latest/configuring-debug-connections-in-ds-5-debugger"><i>Configuring debug connections in DS-5 Debugger</i> in <i>DS-5 Debugger User Guide</i></a></div></li>
+        <li><div class="para"><a href="https://developer.arm.com/docs/100953/latest/"><i>DS-5 Debugger User Guide</i></a></div></li>
+        <li><div class="para"><a href="https://developer.arm.com/docs/100954/latest/"><i>DS-5 Debugger Command Reference</i></a></div></li>
+        <li><div class="para"><a href="https://developer.arm.com/docs/100955/latest"><i>DSTREAM User Guide</i></a></div></li>
+        <li><div class="para"><a href="https://developer.arm.com/docs/100067/latest/"><i>Arm Compiler 6 armclang Reference Guide</i></a></div></li>
+        <li><div class="para"><a href="https://developer.arm.com/docs/100069/latest"><i>Arm Compiler 6 armasm User Guide</i></a></div></li>
+        <li><div class="para"><a href="https://developer.arm.com/docs/100070/latest/"><i>Arm Compiler 6 armlink User Guide</i></a></div></li>
+        <li><div class="para"><a href="https://developer.arm.com/docs/100066/latest/"><i>Arm Compiler 6 Software Development Guide</i></a></div></li>
+    </ul></div>
+<br><br><div align="left" class="legal">
+<hr>Copyright© 2010-2018 Arm Limited (or its affiliates). All rights reserved.</div>
+</body>
+</html>
