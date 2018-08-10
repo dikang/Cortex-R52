@@ -86,7 +86,7 @@ static void check_order(char *sort_type, char *strings[], int n)
 
     for (i = 0; i < n; i++) {
         if (atoi(strings[i]) != i) {
-            fprintf(stderr, "%s sort failed - exiting (expected " N_FORMAT ", got %s),\r\n", sort_type, i, strings[i]);
+            printf("%s sort failed - exiting (expected " N_FORMAT ", got %s),\r\n", sort_type, i, strings[i]);
             exit(1);
         }
     }
@@ -116,9 +116,9 @@ void compare_sorts(void)
 #if N <= 10000
     /* Do insertion sort */
     memcpy(strings_copy, strings, sizeof(strings));
-    starttime = clock();
+//    starttime = clock();
     insert_sort(strings_copy, N);
-    endtime = clock();
+//    endtime = clock();
     check_order("Insertion", strings_copy, N);
     printf("Insertion sort took %d clock ticks\r\n", endtime - starttime);
 #else
@@ -127,17 +127,17 @@ void compare_sorts(void)
 
     /* Do shell sort */
     memcpy(strings_copy, strings, sizeof(strings));
-    starttime = clock();
+//    starttime = clock();
     shell_sort(strings_copy, N);
-    endtime = clock();
+//    endtime = clock();
     check_order("Shell", strings_copy, N);
     printf("Shell sort took %d clock ticks\r\n", endtime - starttime);
 
     /* Do quick sort - use built-in C library sort */
     memcpy(strings_copy, strings, sizeof(strings));
-    starttime = clock();
+//    starttime = clock();
     qsort(strings_copy, N, sizeof(char *), qs_string_compare);
-    endtime = clock();
+//    endtime = clock();
     check_order("Quick", strings_copy, N);
     printf("Quick sort took %d clock ticks\r\n", endtime - starttime);
 }

@@ -25,6 +25,9 @@ float calculate( float a, float b );
 int main(void)
 {
     asm(".global __use_hlt_semihosting");
+    cdns_uart_startup(); 	// init UART
+    printf("R52 is alive\n");
+
 
     /* Display a welcome message via semihosting */
     printf("Cortex-R52 bare-metal startup example\n");
@@ -40,10 +43,14 @@ int main(void)
 #endif
     printf("Float result is        %f\n", calculate(1.5f, 2.5f));
     printf("Float result should be 0.937500\n");
-
+    float f = 0.937500;
+    printf("can printf print 0.937500? %f\n", f);
+    if (f == calculate(1.5f, 2.5f)) printf("Equal\n");
+    else printf("Not Equal\n");
     /* Run the main application (sorts) */
     compare_sorts();
 
+    printf("End of Runs. Congratulation!!\n");
     return 0;
 }
 

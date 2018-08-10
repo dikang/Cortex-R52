@@ -195,20 +195,24 @@ EL2_Reset_Handler:
         MCR p15, 0, r0, c12, c0, 0      // Write to VBAR
 
     // Go to SVC mode
+	MRS r0, apsr	// DK test
         MRS r0, cpsr
         MOV r1, #Mode_SVC
         BFI r0, r1, #0, #5
 #ifdef __THUMB__
         ORR r0, r0, #(0x1 << 5)         // Set T bit
 #endif
-        MSR spsr_hyp, r0
+        MSR spsr_hyp, r0		// DK: Not work yet
         LDR r0, =EL1_Reset_Handler
-        MSR elr_hyp, r0
+        MSR elr_hyp, r0			// DK: Not work yet
         DSB
         ISB
         ERET
-
-
+// DK dummy for testing
+        ORR r0, r0, #(0x1 << 5)         // Set T bit
+        ORR r0, r0, #(0x1 << 5)         // Set T bit
+        ORR r0, r0, #(0x1 << 5)         // Set T bit
+// DK end
     .global __use_two_region_memory
 
 EL1_Reset_Handler:
@@ -262,7 +266,7 @@ EL1_Reset_Handler:
         MRC  p15, 0, r1, c0, c0, 5      // Read CPU ID register
         AND  r1, r1, #0x03              // Mask off, leaving the CPU ID field
 #DK        LDR  r0, =Image$$ARM_LIB_STACK$$ZI$$Limit
-	LDR  r0, =(0x90000)
+	LDR  r0, =(0x1a0000)
         SUB  r0, r0, r1, lsl #14
 
         CPS #Mode_ABT
@@ -347,7 +351,7 @@ Finished:
 //    for fast access to code or data.
 
 // The following illustrates basic TCM configuration, as the basis for exploration by the user
-
+#define TCM
 #ifdef TCM
 
         MRC p15, 0, r0, c0, c0, 2       // Read TCM Type Register
@@ -356,18 +360,21 @@ Finished:
         MRC p15, 0, r0, c9, c1, 0       // Read ATCM Region Register
         // r0 now contains ATCM size in bits [5:2]
 # DK       LDR r0, =Image$$ATCM$$Base      // Set ATCM base address
+	LDR r0, =0x00000014
         ORR r0, r0, #1                  // Enable it
         MCR p15, 0, r0, c9, c1, 0       // Write ATCM Region Register
 
         MRC p15, 0, r0, c9, c1, 1       // Read BTCM Region Register
         // r0 now contains BTCM size in bits [5:2]
 #DK        LDR r0, =Image$$BTCM$$Base      // Set BTCM base address
+	LDR r0, =0x00004014
         ORR r0, r0, #1                  // Enable it
         MCR p15, 0, r0, c9, c1, 1       // Write BTCM Region Register
 
         MRC p15, 0, r0, c9, c1, 2       // Read CTCM Region Register
         // r0 now contains CTCM size in bits [5:2]
 #DK        LDR r0, =Image$$CTCM$$Base      // Set CTCM base address
+	LDR r0, =0x00008014
         ORR r0, r0, #1                  // Enable it
         MCR p15, 0, r0, c9, c1, 2       // Write CTCM Region Register
 
@@ -391,17 +398,20 @@ Finished:
 // Region 4: ATCM          Base = Configurable      Limit = Based on usage   Normal  Non-shared  Full access  Executable
 // Region 5: BTCM          Base = Configurable      Limit = Based on usage   Normal  Non-shared  Full access  Executable
 // Region 6: CTCM          Base = Configurable      Limit = Based on usage   Normal  Non-shared  Full access  Executable
+// DK: Region 7: Peripherals Base = 0xf0000000      Limit = 0xFFFFFFFF	     Device Full access  Executable
 
         LDR     r0, =64
 
         // Region 0 - Code
 #DK        LDR     r1, =Image$$CODE$$Base
-	LDR	r1, =(0x0)
+#	mov     r1, #1048576
+	mov     r1, #0x100000
         LDR     r2, =((Non_Shareable<<3) | (RO_Access<<1))
         ORR     r1, r1, r2
         MCR     p15, 0, r1, c6, c8, 0                   // write PRBAR0
 #DK        LDR     r1, =Image$$CODE$$Limit
-	LDR	r1, =(0x10000)
+#	mov     r1, #18874368
+	mov     r1, #0x120000
         ADD     r1, r1, #63
         BFC     r1, #0, #6                              // align Limit to 64bytes
         LDR     r2, =((AttrIndx0<<1) | (ENable))
@@ -410,12 +420,14 @@ Finished:
 
         // Region 1 - Data
 #DK        LDR     r1, =Image$$DATA$$Base
-	LDR	r1, =(0x10000)
+#	mov     r1, #19922944
+	mov     r1, #0x130000
         LDR     r2, =((Non_Shareable<<3) | (RW_Access<<1))
         ORR     r1, r1, r2
         MCR     p15, 0, r1, c6, c8, 4                   // write PRBAR1
 #DK        LDR     r1, =Image$$DATA$$ZI$$Limit
-	LDR	r1, =(0x20000)
+#	mov     r1, #20971520
+	mov     r1, #0x140000
         ADD     r1, r1, #63
         BFC     r1, #0, #6                              // align Limit to 64bytes
         LDR     r2, =((AttrIndx0<<1) | (ENable))
@@ -424,12 +436,14 @@ Finished:
 
         // Region 2 - Stack-Heap
 #DK        LDR     r1, =Image$$ARM_LIB_HEAP$$Base
-	LDR	r1, =(0x80000)
+#	mov     r1, #23068672
+	mov     r1, #0x160000
         LDR     r2, =((Non_Shareable<<3) | (RW_Access<<1))
         ORR     r1, r1, r2
         MCR     p15, 0, r1, c6, c9, 0                   // write PRBAR2
 #DK        LDR     r1, =Image$$ARM_LIB_STACK$$ZI$$Limit
-	LDR	r1, =(0x80000)
+#	mov     r1, #27262976
+	mov     r1, #0x1a0000
         ADD     r1, r1, #63
         BFC     r1, #0, #6                              // align Limit to 64bytes
         LDR     r2, =((AttrIndx0<<1) | (ENable))
@@ -451,10 +465,12 @@ Finished:
 #ifdef TCM
         // Region 4 - ATCM
 #DK        LDR     r1, =Image$$ATCM$$Base
+	LDR	r1, =0
         LDR     r2, =((Non_Shareable<<3) | (RW_Access<<1))
         ORR     r1, r1, r2
         MCR     p15, 0, r1, c6, c10, 0                  // write PRBAR4
 #DK        LDR     r1, =Image$$ATCM$$Limit
+	LDR	r1, =0x4000
         ADD     r1, r1, #63
         BFC     r1, #0, #6                              // align Limit to 64bytes
         LDR     r2, =((AttrIndx1<<1) | (ENable))
@@ -463,10 +479,12 @@ Finished:
 
         // Region 5 - BTCM
 #DK        LDR     r1, =Image$$BTCM$$Base
+	LDR	r1, =0x4000
         LDR     r2, =((Non_Shareable<<3) | (RW_Access<<1))
         ORR     r1, r1, r2
         MCR     p15, 0, r1, c6, c10, 4                  // write PRBAR5
 #DK        LDR     r1, =Image$$BTCM$$Limit
+	LDR	r1, =0x8000
         ADD     r1, r1, #63
         BFC     r1, #0, #6                              // align Limit to 64bytes
         LDR     r2, =((AttrIndx0<<1) | (ENable))
@@ -475,16 +493,31 @@ Finished:
 
         // Region 6 - CTCM
 #DK        LDR     r1, =Image$$CTCM$$Base
+	LDR	r1, =0x8000
         LDR     r2, =((Non_Shareable<<3) | (RW_Access<<1))
         ORR     r1, r1, r2
         MCR     p15, 0, r1, c6, c11, 0                  // write PRBAR6
 #DK        LDR     r1, =Image$$CTCM$$Limit
+	LDR	r1, =0xc000
         ADD     r1, r1, #63
         BFC     r1, #0, #6                              // align Limit to 64bytes
         LDR     r2, =((AttrIndx0<<1) | (ENable))
         ORR     r1, r1, r2
         MCR     p15, 0, r1, c6, c11, 1                  // write PRLAR6
 #endif
+
+        // Region 7 - Peripherals
+        LDR     r1, =0xF0000000
+        LDR     r2, =((Non_Shareable<<3) | (RW_Access<<1))
+        ORR     r1, r1, r2
+        MCR     p15, 0, r1, c6, c11, 4                   // write PRBAR7
+        LDR     r1, =0xFFFFFF00
+        ADD     r1, r1, #63
+        BFC     r1, #0, #6                              // align Limit to 64bytes
+        LDR     r2, =((AttrIndx0<<1) | (ENable))
+        ORR     r1, r1, r2
+        MCR     p15, 0, r1, c6, c11, 5                   // write PRLAR7
+
 
     // MAIR0 configuration
         MRC p15, 0, r0, c10, c2, 0      // Read MAIR0 into r0
@@ -493,7 +526,6 @@ Finished:
         LDR r1, =0x04                   // Device nGnRnE
         BFI r0, r1, #8, #8              // Update Attr1
         MCR p15,0,r0,c10,c2,0           // Write r0 to MAIR0
-
 #ifdef __ARM_FP
 //----------------------------------------------------------------
 // Enable access to VFP by enabling access to Coprocessors 10 and 11.
@@ -524,6 +556,7 @@ Finished:
         DSB                                 // Ensure all previous loads/stores have completed
         MCR     p15, 0, r0, c1, c0, 0       // Write System Control Register
         ISB                                 // Ensure subsequent insts execute wrt new MPU settings
+			// DK: this ISB instruction causes exception.
 
 //Check which CPU I am
         MRC p15, 0, r0, c0, c0, 5       // Read MPIDR
@@ -549,6 +582,12 @@ cpu0:
 #       .global     __main
 #        B       __main
        .global     main
+#DK's test to switch from SVC mode to User mode. it works.
+# but it is disabled for now.
+#	MSR     CPSR_c, #0x10
+#DK's test to set up stack poointer
+	movw	r13, #0
+	movt	r13, #0x1a
         B       main
 
 //    .size Reset_Handler, . - Reset_Handler	// Original
