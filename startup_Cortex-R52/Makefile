@@ -60,8 +60,8 @@ LDFLAG = -mfloat-abi=hard -mfpu=vfpv3
 # Enable use of TCM in assembler code with -DTCM
 
 #$(TARGET) : main.o sorts.o startup.o scatter.scat
-$(TARGET) : main.o sorts.o startup.o uart-memmap uart.o printf.o
-	$(CC) startup.o main.o sorts.o printf.o uart.o -T uart-memmap --entry=Start -o $(TARGET) -mcpu=$(CORE) $(LDFLAG) -lgcc -lc -lrdimon -Wl,--gc-sections -static 
+$(TARGET) : main.o sorts.o startup.o uart-memmap uart.o printf.o mailbox.o command.o 
+	$(CC) startup.o main.o sorts.o printf.o uart.o command.o mailbox.o -T uart-memmap --entry=Start -o $(TARGET) -mcpu=$(CORE) $(LDFLAG) -lgcc -lc -lrdimon -Wl,--gc-sections -static 
 	$(OBJDUMP) $(TARGET) -D > all.dis.s
 	$(OBJDUMP) startup.o  -D > startup.dis.s
 #	$(CC) main.o sorts.o startup.o -T uart-memmap --entry=Start -o $(TARGET) -mcpu=$(CORE) -lc -lrdimon -nostartfiles -Wl,--gc-sections
@@ -72,6 +72,12 @@ $(TARGET) : main.o sorts.o startup.o uart-memmap uart.o printf.o
 
 main.o : main.c
 	$(CC) -c $(CCOPT) -mcpu=$(CORE) main.c
+
+mailbox.o : mailbox.c
+	$(CC) -c $(CCOPT) -mcpu=$(CORE) mailbox.c
+
+command.o : command.c
+	$(CC) -c $(CCOPT) -mcpu=$(CORE) command.c
 
 sorts.o : sorts.c
 	$(CC) -c $(CCOPT) -mcpu=$(CORE) sorts.c
@@ -85,3 +91,6 @@ uart.o : uart.c
 
 printf.o : printf.c
 	$(CC) -c $(CCOPT) -mcpu=$(CORE) printf.c -o printf.o
+
+#gicv3.o : gicv3.c
+#	$(CC) -c $(CCOPT) -mcpu=$(CORE) gicv3.c -o gicv3.o

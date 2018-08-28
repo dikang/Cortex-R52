@@ -7,6 +7,36 @@
 // and your compliance with all applicable terms and conditions of such licence agreement.
 //----------------------------------------------------------------
 
+#define DK_GIC
+#ifdef DK_GIC
+#define GICD_BASE 0xF9A00000
+#define GICR_BASE 0xF9B00000
+
+/* Distributor Registers */
+#define GICD_CTLR		0x0000
+#define GICD_TYPER		0x0004
+#define GICD_IIDR		0x0008
+#define GICD_STATUSR		0x0010
+#define GICD_SETSPI_NSR		0x0040
+#define GICD_CLRSPI_NSR		0x0048
+#define GICD_SETSPI_SR		0x0050
+#define GICD_CLRSPI_SR		0x0058
+#define GICD_SEIR		0x0068
+#define GICD_IGROUPRn		0x0080
+#define GICD_ISENABLERn		0x0100
+#define GICD_ICENABLERn		0x0180
+#define GICD_ISPENDRn		0x0200
+#define GICD_ICPENDRn		0x0280
+#define GICD_ISACTIVERn		0x0300
+#define GICD_IGROUPMODRn        0x0d00
+
+#define GICR_TYPER              0x0008
+#define GICR_WAKER              0x0014
+
+#define GICR_IGROUPRn           0x0080
+#define GICR_ISENABLERn         0x0100
+#define GICR_IGROUPMODRn        0x0d00
+#endif
 // MPU region defines
 
 // Protection Base Address Register
@@ -518,6 +548,18 @@ Finished:
         ORR     r1, r1, r2
         MCR     p15, 0, r1, c6, c11, 5                   // write PRLAR7
 
+        // Region 8 - Mailbox
+        LDR     r1, =0x30000000
+        LDR     r2, =((Non_Shareable<<3) | (RW_Access<<1))
+        ORR     r1, r1, r2
+        MCR     p15, 0, r1, c6, c12, 0                   // write PRBAR8
+        LDR     r1, =0x30ffffff 
+        ADD     r1, r1, #63
+        BFC     r1, #0, #6                              // align Limit to 64bytes
+        LDR     r2, =((AttrIndx0<<1) | (ENable))
+        ORR     r1, r1, r2
+        MCR     p15, 0, r1, c6, c12, 1                   // write PRLAR8
+
 
     // MAIR0 configuration
         MRC p15, 0, r0, c10, c2, 0      // Read MAIR0 into r0
@@ -546,6 +588,28 @@ Finished:
 #endif
 
 
+#ifdef DK_GIC /* gotten from U-boot for GICV3 */
+/*	B ret_secure_percpu */
+	B	gic_init_secure
+ret_secure:
+	B 	gic_init_secure_percpu
+ret_secure_percpu:
+        /* GICD_ISENABLER5 or 6? (just do 5, 6, 7) */
+	ldr	r0, =GICD_BASE
+	MOV	r1, #0xffffffff
+	STR	r1, [r0, #0x114]
+	STR	r1, [r0, #0x118]
+	STR	r1, [r0, #0x11a]
+        /* GICD_ICFGR10-14? (just do 10-14) */
+	ldr	r0, =GICD_BASE
+	ldr	r1, =0xaaaaaaaa
+	STR	r1, [r0, #0xc24]
+	STR	r1, [r0, #0xc28]
+	STR	r1, [r0, #0xc2a]
+	STR	r1, [r0, #0xc30]
+	STR	r1, [r0, #0xc34]
+	STR	r1, [r0, #0xc38]
+#endif
 //----------------------------------------------------------------
 // Enable MPU and branch to C library init
 // Leaving the caches disabled until after scatter loading.
@@ -592,7 +656,106 @@ cpu0:
 
 //    .size Reset_Handler, . - Reset_Handler	// Original
 
+#ifdef DK_GIC
+gic_init_secure:
+	/*
+	 * Initialize Distributor
+	 * r0: Distributor Base
+	 */
+	ldr	r0, =GICD_BASE
+	mov	r9, #0x37		/* EnableGrp0 | EnableGrp1NS */
+					/* EnableGrp1S | ARE_S | ARE_NS */
+	str	r9, [r0, #GICD_CTLR]	/* Secure GICD_CTLR */
+	ldr	r9, [r0, #GICD_TYPER]
+	and	r10, r9, #0x1f		/* ITLinesNumber */
+/*	cbz	r10, 1f */			/* No SPIs */
+	cmp	r10, #0
+	beq	1f
+	add	r11, r0, #(GICD_IGROUPRn + 4) 
+/*	add	r12, r0, #(GICD_IGROUPMODRn + 4) */
+	add	r12, r0, #0xd00
+	add	r12, r12, #0x4
+	mov	r9, #~0
+0:	str	r9, [r11], #0x4
+	mov	r7, #0
+	str	r7, [r12], #0x4	/* Config SPIs as Group1NS */
+	sub	r10, r10, #0x1
+/*	cbnz	r10, 0b */
+	cmp	r10, #0
+	bne	0b
+1:
+	b 	ret_secure
 
+gic_init_secure_percpu:
+	/*
+	 * Initialize ReDistributor
+	 * r0: ReDistributor Base
+	 */
+	ldr	r0, =GICR_BASE
+//	mrs	r10, mpidr
+        MRC p15, 0, r10, c0, c0, 5       // Read MPIDR
+	lsr	r9, r10, #32
+	bfi	r10, r9, #24, #8	/* r5 is aff3:aff2:aff1:aff0 */
+	mov	r9, r0
+1:	ldr	r11, [r9, #GICR_TYPER]
+	lsr	r11, r11, #32		/* r6 is aff3:aff2:aff1:aff0 */
+	cmp	r10, r11
+	beq	2f
+	add	r9, r9, #(2 << 16)
+	b	1b
+
+	/* r9: ReDistributor Base Address of Current CPU */
+2:	mov	r5, #~0x2
+	ldr	r6, [r9, #GICR_WAKER]
+	and	r6, r6, r5		/* Clear ProcessorSleep */
+	str	r6, [r9, #GICR_WAKER]
+	dsb	st
+	isb
+3:	ldr	r5, [r9, #GICR_WAKER]
+/*	tbnz	r5, #2, 3b */		/* Wait Children be Alive */
+	and	r6, r5, #0x4
+	cmp	r6, #0x4
+	beq	3b
+
+	add	r10, r9, #(1 << 16)	/* SGI_Base */
+	mov	r6, #~0
+	str	r6, [r10, #GICR_IGROUPRn]
+	mov	r7, #0
+	str	r7, [r10, #GICR_IGROUPMODRn]	/* SGIs|PPIs Group1NS */
+	mov	r6, #0x1		/* Enable SGI 0 */
+	str	r6, [r10, #GICR_ISENABLERn]
+
+	/* Initialize Cpu Interface */
+#ifdef GIC_ORG__
+	mrs	r10, ICC_SRE
+	orr	r10, r10, #0x7		/* SRE & Disable IRQ/FIQ Bypass & */
+					/* Allow EL1 access to ICC_SRE_EL1 */
+/*	msr	ICC_SRE, r10 */
+	MCR p15, 0, r10, c12, c12, 5		// coproc, #opcode1, Rt, CRn, CRm{, #opcode2}	
+	isb
+#endif
+	mov	r10, #0x1		/* DK added: EnableGrp0NS */
+/*	msr	ICC_IGRPEN0, r10 */
+	MCR p15, 0, r10, c12, c12, 6		// coproc, #opcode1, Rt, CRn, CRm{, #opcode2}	
+	isb
+
+	mov	r10, #0x1		/* EnableGrp1NS */
+/*	msr	ICC_IGRPEN1, r10 */
+	MCR p15, 0, r10, c12, c12, 7		// coproc, #opcode1, Rt, CRn, CRm{, #opcode2}	
+	isb
+
+/*	msr	ICC_CTLR, xzr */	/* NonSecure ICC_CTLR_EL1 */ 
+	mov	r10, #0
+	MCR p15, 0, r10, c12, c12, 4		// coproc, #opcode1, Rt, CRn, CRm{, #opcode2}	
+	isb
+
+	mov	r10, #0x1 << 7		/* Non-Secure access to ICC_PMR_EL1 */
+/*	msr	ICC_PMR, r10 */
+	MCR p15, 0, r10, c4, c6, 0		// coproc, #opcode1, Rt, CRn, CRm{, #opcode2}	
+	isb
+	b	ret_secure_percpu
+
+#endif
 //----------------------------------------------------------------
 // Global Enable for Instruction and Data Caching
 //----------------------------------------------------------------

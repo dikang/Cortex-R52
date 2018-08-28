@@ -21,36 +21,62 @@ extern void enable_caches(void);
 extern void compare_sorts(void);
 float calculate( float a, float b );
 
+void enable_interrupts (void)
+{
+	unsigned long temp;
+	__asm__ __volatile__("mrs %0, cpsr\n"
+			     "bic %0, %0, #0x80\n"
+			     "msr cpsr_c, %0"
+			     : "=r" (temp)
+			     :
+			     : "memory");
+}
 
 int main(void)
 {
-    asm(".global __use_hlt_semihosting");
+//    asm(".global __use_hlt_semihosting");
     cdns_uart_startup(); 	// init UART
-    printf("R52 is alive\n");
+    my_printf("R52 is alive\n");
 
 
     /* Display a welcome message via semihosting */
-    printf("Cortex-R52 bare-metal startup example\n");
+    my_printf("Cortex-R52 bare-metal startup example\n");
 
     /* Enable the caches */
     enable_caches();
 
+    /* Enable GIC */
+/*    my_printf("start of arm_gic_setup()\n");
+    arm_gic_setup();
+    my_printf("end of arm_gic_setup()\n");
+*/
+    enable_interrupts();
+
+    /* Enables mailbox */
+    mbox_init(); 
+
     /* Perform a float calculation to demonstrate floating point (using the FPU, if compiled appropriately) */
 #ifdef __ARM_FP
-    printf("Floating point calculation using the FPU...\n");
+    my_printf("Floating point calculation using the FPU...\n");
 #else
-    printf("Floating point calculation using the software floating point library (no FPU)...\n");
+    my_printf("Floating point calculation using the software floating point library (no FPU)...\n");
 #endif
-    printf("Float result is        %f\n", calculate(1.5f, 2.5f));
-    printf("Float result should be 0.937500\n");
+    my_printf("Float result is        %f\n", calculate(1.5f, 2.5f));
+    my_printf("Float result should be 0.937500\n");
     float f = 0.937500;
-    printf("can printf print 0.937500? %f\n", f);
-    if (f == calculate(1.5f, 2.5f)) printf("Equal\n");
-    else printf("Not Equal\n");
+    my_printf("can printf print 0.937500? %f\n", f);
+    if (f == calculate(1.5f, 2.5f)) my_printf("Equal\n");
+    else my_printf("Not Equal\n");
     /* Run the main application (sorts) */
     compare_sorts();
+/*    mbox_send(32);
+    mbox_send(33); */
 
-    printf("End of Runs. Congratulation!!\n");
+    my_printf("End of Runs. busy wait!!\n");
+    while (1) {
+    ;
+    }
+    my_printf("End of Runs. Congratulation!!\n");
     return 0;
 }
 
