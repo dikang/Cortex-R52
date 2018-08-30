@@ -216,10 +216,83 @@ EL2_Reset_Handler:
         LDR r0, =0x30C5180C             // See TRM for decoding
         MCR p15, 4, r0, c1, c0, 0       // Write to HSCTLR
 
+	/* DK's test for EL2 MPU */
+
+        // Region 0 - Code
+#DK        LDR     r1, =Image$$CODE$$Base
+#	mov     r1, #1048576
+	mov     r1, #0x100000
+        LDR     r2, =((Non_Shareable<<3) | (RO_Access<<1))
+        ORR     r1, r1, r2
+        MCR     p15, 4, r1, c6, c8, 0                   // write HPRBAR0
+#DK        LDR     r1, =Image$$CODE$$Limit
+#	mov     r1, #18874368
+	mov     r1, #0x120000
+        ADD     r1, r1, #63
+        BFC     r1, #0, #6                              // align Limit to 64bytes
+        LDR     r2, =((AttrIndx0<<1) | (ENable))
+        ORR     r1, r1, r2
+        MCR     p15, 4, r1, c6, c8, 1                   // write HPRLAR0
+
+        // Region 1 - Data
+#DK        LDR     r1, =Image$$DATA$$Base
+#	mov     r1, #19922944
+	mov     r1, #0x130000
+        LDR     r2, =((Non_Shareable<<3) | (RW_Access<<1))
+        ORR     r1, r1, r2
+        MCR     p15, 4, r1, c6, c8, 4                   // write HPRBAR1
+#DK        LDR     r1, =Image$$DATA$$ZI$$Limit
+#	mov     r1, #20971520
+	mov     r1, #0x140000
+        ADD     r1, r1, #63
+        BFC     r1, #0, #6                              // align Limit to 64bytes
+        LDR     r2, =((AttrIndx0<<1) | (ENable))
+        ORR     r1, r1, r2
+        MCR     p15, 4, r1, c6, c8, 5                   // write HPRLAR1
+
+        // Region 2 - Stack-Heap
+#DK        LDR     r1, =Image$$ARM_LIB_HEAP$$Base
+#	mov     r1, #23068672
+	mov     r1, #0x160000
+        LDR     r2, =((Non_Shareable<<3) | (RW_Access<<1))
+        ORR     r1, r1, r2
+        MCR     p15, 4, r1, c6, c9, 0                   // write HPRBAR2
+#DK        LDR     r1, =Image$$ARM_LIB_STACK$$ZI$$Limit
+#	mov     r1, #27262976
+	mov     r1, #0x1a0000
+        ADD     r1, r1, #63
+        BFC     r1, #0, #6                              // align Limit to 64bytes
+        LDR     r2, =((AttrIndx0<<1) | (ENable))
+        ORR     r1, r1, r2
+        MCR     p15, 4, r1, c6, c9, 1                   // write HPRLAR2
+
+        // Region 7 - Peripherals
+        LDR     r1, =0xF0000000
+        LDR     r2, =((Non_Shareable<<3) | (RW_Access<<1))
+        ORR     r1, r1, r2
+        MCR     p15, 4, r1, c6, c11, 4                   // write HPRBAR7
+        LDR     r1, =0xFFFFFF00
+        ADD     r1, r1, #63
+        BFC     r1, #0, #6                              // align Limit to 64bytes
+        LDR     r2, =((AttrIndx0<<1) | (ENable))
+        ORR     r1, r1, r2
+        MCR     p15, 4, r1, c6, c11, 5                   // write HPRLAR7
+
+        LDR r0, =0x30C5180d             // DK's test. Enable EL2 MPU. 
+        MCR p15, 4, r0, c1, c0, 0       // Write to HSCTLR
+
+	MRC p15, 4, r0, c1, c1, 0	// Read HCR
+	ORR	r0, r0, #1		// Enable VM
+	MCR p15, 4, r0, c1, c1, 0	// Write HCR
+
+	/* end of test */
+
+
     // Enable EL1 access to all IMP DEF registers
         LDR r0, =0x7F81
+	DSB
         MCR p15, 4, r0, c1, c0, 1       // Write to HACTLR
-
+	ISB
     // Change EL1 exception base address
         LDR r0, =EL1_Vectors
         MCR p15, 0, r0, c12, c0, 0      // Write to VBAR
@@ -232,6 +305,7 @@ EL2_Reset_Handler:
 #ifdef __THUMB__
         ORR r0, r0, #(0x1 << 5)         // Set T bit
 #endif
+//        MSR spsr_abt, r0		// DK: test
         MSR spsr_hyp, r0		// DK: Not work yet
         LDR r0, =EL1_Reset_Handler
         MSR elr_hyp, r0			// DK: Not work yet
