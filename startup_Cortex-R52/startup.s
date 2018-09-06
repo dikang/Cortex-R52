@@ -285,9 +285,28 @@ EL2_Reset_Handler:
 	ORR	r0, r0, #1		// Enable VM
 	MCR p15, 4, r0, c1, c1, 0	// Write HCR
 
-	/* end of test */
+	/* end of tests */
 
-
+#ifdef PMEV_TEST
+/* DK: CPR registers testing */
+	MRC p15, 0, r0, c14, c8, 0	// Read PMEVCNTR0
+	MCR p15, 0, r0, c14, c8, 0	// Write PMEVCNTR0
+	MRC p15, 0, r0, c14, c8, 1	// Read PMEVCNTR1
+	MCR p15, 0, r0, c14, c8, 1	// Write PMEVCNTR1
+	MRC p15, 0, r0, c14, c8, 2	// Read PMEVCNTR2
+	MCR p15, 0, r0, c14, c8, 2	// Write PMEVCNTR2
+	MRC p15, 0, r0, c14, c8, 3	// Read PMEVCNTR3
+	MCR p15, 0, r0, c14, c8, 3	// Write PMEVCNTR3
+	MRC p15, 0, r0, c14, c12, 0	// Read PMEVTYPER0
+	MCR p15, 0, r0, c14, c12, 0	// Write PMEVTYPER0
+	MRC p15, 0, r0, c14, c12, 1	// Read PMEVTYPER1
+	MCR p15, 0, r0, c14, c12, 1	// Write PMEVTYPER1
+	MRC p15, 0, r0, c14, c12, 2	// Read PMEVTYPER2
+	MCR p15, 0, r0, c14, c12, 2	// Write PMEVTYPER2
+	MRC p15, 0, r0, c14, c12, 3	// Read PMEVTYPER3
+	MCR p15, 0, r0, c14, c12, 3	// Write PMEVTYPER3
+/* end of tests */
+#endif
     // Enable EL1 access to all IMP DEF registers
         LDR r0, =0x7F81
 	DSB
@@ -297,6 +316,13 @@ EL2_Reset_Handler:
         LDR r0, =EL1_Vectors
         MCR p15, 0, r0, c12, c0, 0      // Write to VBAR
 
+    // DK test for reading HVBAR
+        MRC p15, 4, r0, c12, c0, 0      // Read from HVBAR
+        
+    // DK test for HRMR
+//	MOV r1, #2
+//	MCR p15, 4, r1, c12, c0, 2
+ 
     // Go to SVC mode
 	MRS r0, apsr	// DK test
         MRS r0, cpsr

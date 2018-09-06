@@ -32,6 +32,13 @@ void enable_interrupts (void)
 			     : "memory");
 }
 
+void soft_reset (void) 
+{
+	unsigned long temp;
+	__asm__ __volatile__("mov r1, #2\n"
+			     "mcr p15, 4, r1, c12, c0, 2\n"); 
+}
+
 int main(void)
 {
 //    asm(".global __use_hlt_semihosting");
@@ -76,7 +83,13 @@ int main(void)
     while (1) {
     ;
     }
+    /* this part is never reached */
     my_printf("End of Runs. Congratulation!!\n");
+    my_printf("Reset!!\n");
+    /* this will generate "Undefined Instruction exception because HRMR is accessible only at EL2 */
+    soft_reset();
+    my_printf("Does reset work?\n");
+    
     return 0;
 }
 
