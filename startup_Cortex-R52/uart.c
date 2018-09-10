@@ -201,7 +201,7 @@ int cdns_uart_startup()
 	return retval;
 }
 
-void io_putchar(unsigned char c)
+void _putchar(char c)
 {
 
 #if 0
@@ -226,10 +226,4 @@ void io_putchar(unsigned char c)
 #endif
 
 	return;
-}
-
-void io_puts_no_newline(const char *c)
-{
-    while (*c != 0)
-        io_putchar(*c++);
 }

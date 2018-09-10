@@ -8,7 +8,8 @@
 /* This file contains the main() program that displays a welcome message, enables the caches,
    performs a float calculation to demonstrate floating point, then runs the main application (sorts) */
 
-#include <stdio.h>
+#include "printf.h"
+#include "uart.h"
 
 extern unsigned char _text_start;
 extern unsigned char _text_end;
@@ -43,19 +44,19 @@ int main(void)
 {
 //    asm(".global __use_hlt_semihosting");
     cdns_uart_startup(); 	// init UART
-    my_printf("R52 is alive\n");
+    printf("R52 is alive\r\n");
 
 
     /* Display a welcome message via semihosting */
-    my_printf("Cortex-R52 bare-metal startup example\n");
+    printf("Cortex-R52 bare-metal startup example\r\n");
 
     /* Enable the caches */
     enable_caches();
 
     /* Enable GIC */
-/*    my_printf("start of arm_gic_setup()\n");
+/*    printf("start of arm_gic_setup()\n");
     arm_gic_setup();
-    my_printf("end of arm_gic_setup()\n");
+    printf("end of arm_gic_setup()\n");
 */
     enable_interrupts();
 
@@ -79,16 +80,16 @@ int main(void)
 /*    mbox_send(32);
     mbox_send(33); */
 
-    my_printf("End of Runs. busy wait!!\n");
+    printf("End of Runs. busy wait!!\r\n");
     while (1) {
     ;
     }
     /* this part is never reached */
-    my_printf("End of Runs. Congratulation!!\n");
-    my_printf("Reset!!\n");
+    printf("End of Runs. Congratulation!!\r\n");
+    printf("Reset!!\r\n");
     /* this will generate "Undefined Instruction exception because HRMR is accessible only at EL2 */
     soft_reset();
-    my_printf("Does reset work?\n");
+    printf("Does reset work?\r\n");
     
     return 0;
 }

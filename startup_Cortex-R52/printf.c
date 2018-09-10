@@ -34,13 +34,10 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdint.h>
-//#include "printf.h"
 
-// The I/O backend library provides these
-int io_putchar(int c);
-int io_puts_no_newline(const char *);
+#include "printf.h"
 
-#define _putchar(c) io_putchar(c)
+void _putchar(char);
 
 // ntoa conversion buffer size, this must be big enough to hold
 // one converted numeric number including padded zeros (dynamically created on stack)
@@ -669,7 +666,7 @@ static int _vsnprintf(out_fct_type out, char* buffer, const size_t maxlen, const
 ///////////////////////////////////////////////////////////////////////////////
 
 
-int my_printf(const char* format, ...)
+int printf(const char* format, ...)
 {
   va_list va;
   va_start(va, format);
@@ -680,7 +677,7 @@ int my_printf(const char* format, ...)
 }
 
 
-int my_sprintf(char* buffer, const char* format, ...)
+int sprintf(char* buffer, const char* format, ...)
 {
   va_list va;
   va_start(va, format);
@@ -690,7 +687,7 @@ int my_sprintf(char* buffer, const char* format, ...)
 }
 
 
-int my_snprintf(char* buffer, size_t count, const char* format, ...)
+int snprintf(char* buffer, size_t count, const char* format, ...)
 {
   va_list va;
   va_start(va, format);
@@ -700,7 +697,7 @@ int my_snprintf(char* buffer, size_t count, const char* format, ...)
 }
 
 
-int my_vsnprintf(char* buffer, size_t count, const char* format, va_list va)
+int vsnprintf(char* buffer, size_t count, const char* format, va_list va)
 {
   return _vsnprintf(_out_buffer, buffer, count, format, va);
 }
