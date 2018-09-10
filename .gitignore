@@ -1,0 +1,8 @@
+*.axf
+*.bin
+*.o
+*.elf
+*.d
+*.out
+*.list
+*.dis.s
