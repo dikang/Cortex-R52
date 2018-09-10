@@ -48,7 +48,7 @@ clean:
 
 CORE=cortex-r52
 # If hardware floating point is either not present or not required, add -mfpu=none to the compile step
-CCOPT =-g -O0 -mthumb -mfloat-abi=hard -mfpu=vfpv3 -I.
+CCOPT =-g -O0 -mthumb -mfloat-abi=hard -mfpu=vfpv3 -I. -nostdlib -nostartfiles -ffreestanding
 #original below
 #CCOPT =-g -O1 -mthumb -I./libmspprintf/src/include 
 #CCOPT =-g -O1 -mthumb -I./libmspprintf/src/include -mfloat-abi=hard
