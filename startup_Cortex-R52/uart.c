@@ -1,6 +1,6 @@
 #include <stdint.h>
 
-#define BASEADDR 0xff010000
+#define BASEADDR 0x30001000
 
 /* Register offsets for the UART. */
 #define CDNS_UART_CR_OFFSET		0x00  /* Control Register */

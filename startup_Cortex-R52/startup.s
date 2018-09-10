@@ -267,7 +267,7 @@ EL2_Reset_Handler:
         MCR     p15, 4, r1, c6, c9, 1                   // write HPRLAR2
 
         // Region 7 - Peripherals
-        LDR     r1, =0xF0000000
+        LDR     r1, =0x30000000
         LDR     r2, =((Non_Shareable<<3) | (RW_Access<<1))
         ORR     r1, r1, r2
         MCR     p15, 4, r1, c6, c11, 4                   // write HPRBAR7
@@ -528,7 +528,7 @@ Finished:
 // Region 4: ATCM          Base = Configurable      Limit = Based on usage   Normal  Non-shared  Full access  Executable
 // Region 5: BTCM          Base = Configurable      Limit = Based on usage   Normal  Non-shared  Full access  Executable
 // Region 6: CTCM          Base = Configurable      Limit = Based on usage   Normal  Non-shared  Full access  Executable
-// DK: Region 7: Peripherals Base = 0xf0000000      Limit = 0xFFFFFFFF	     Device Full access  Executable
+// DK: Region 7: Peripherals Base = 0x30000000      Limit = 0xFFFFFFFF	     Device              Full access  Executable
 
         LDR     r0, =64
 
@@ -635,9 +635,10 @@ Finished:
         ORR     r1, r1, r2
         MCR     p15, 0, r1, c6, c11, 1                  // write PRLAR6
 #endif
+#endif
 
         // Region 7 - Peripherals
-        LDR     r1, =0xF0000000
+        LDR     r1, =0x30000000
         LDR     r2, =((Non_Shareable<<3) | (RW_Access<<1))
         ORR     r1, r1, r2
         MCR     p15, 0, r1, c6, c11, 4                   // write PRBAR7
