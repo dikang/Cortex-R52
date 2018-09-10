@@ -10,6 +10,11 @@
 
 #include "printf.h"
 #include "uart.h"
+#include "float.h"
+#include "mailbox.h"
+
+#define TEST_FLOAT
+// #define TEST_SORT
 
 extern unsigned char _text_start;
 extern unsigned char _text_end;
@@ -20,7 +25,6 @@ extern unsigned char _bss_end;
 
 extern void enable_caches(void);
 extern void compare_sorts(void);
-float calculate( float a, float b );
 
 void enable_interrupts (void)
 {
@@ -60,25 +64,17 @@ int main(void)
 */
     enable_interrupts();
 
-    /* Enables mailbox */
-    mbox_init(); 
 
-    /* Perform a float calculation to demonstrate floating point (using the FPU, if compiled appropriately) */
-#ifdef __ARM_FP
-    my_printf("Floating point calculation using the FPU...\n");
-#else
-    my_printf("Floating point calculation using the software floating point library (no FPU)...\n");
-#endif
-    my_printf("Float result is        %f\n", calculate(1.5f, 2.5f));
-    my_printf("Float result should be 0.937500\n");
-    float f = 0.937500;
-    my_printf("can printf print 0.937500? %f\n", f);
-    if (f == calculate(1.5f, 2.5f)) my_printf("Equal\n");
-    else my_printf("Not Equal\n");
+#ifdef TEST_FLOAT
+    float_test();
+#endif // TEST_FLOAT
+
+#ifdef TEST_SORT
     /* Run the main application (sorts) */
     compare_sorts();
 /*    mbox_send(32);
     mbox_send(33); */
+#endif // TEST_SORT
 
     printf("End of Runs. busy wait!!\r\n");
     while (1) {
@@ -92,14 +88,4 @@ int main(void)
     printf("Does reset work?\r\n");
     
     return 0;
-}
-
-
-float calculate( float a, float b )
-{
-    float temp1, temp2;
-
-    temp1 = a + b;
-    temp2 = a * b;
-    return temp2 / temp1;
 }
