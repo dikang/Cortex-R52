@@ -60,37 +60,19 @@ LDFLAG = -mfloat-abi=hard -mfpu=vfpv3
 # Enable use of TCM in assembler code with -DTCM
 
 #$(TARGET) : main.o sorts.o startup.o scatter.scat
-$(TARGET) : main.o sorts.o startup.o uart-memmap uart.o printf.o mailbox.o command.o 
-	$(CC) startup.o main.o sorts.o printf.o uart.o command.o mailbox.o -T uart-memmap --entry=Start -o $(TARGET) -mcpu=$(CORE) $(LDFLAG) -lgcc -lc -lrdimon -Wl,--gc-sections -static 
+$(TARGET) : startup.ld startup.o main.o sorts.o uart.o printf.o mailbox.o float.o
+	$(CC) -T $^ --entry=Start -o $(TARGET) -mcpu=$(CORE) $(LDFLAG) -lgcc -lc -lrdimon -Wl,--gc-sections -static
 	$(OBJDUMP) $(TARGET) -D > all.dis.s
 	$(OBJDUMP) startup.o  -D > startup.dis.s
-#	$(CC) main.o sorts.o startup.o -T uart-memmap --entry=Start -o $(TARGET) -mcpu=$(CORE) -lc -lrdimon -nostartfiles -Wl,--gc-sections
-#	$(CC) main.o sorts.o startup.o -T uart-memmap -o $(TARGET) -mcpu=$(CORE) -lc -lrdimon 
+#	$(CC) main.o sorts.o startup.o -T startup.ld --entry=Start -o $(TARGET) -mcpu=$(CORE) -lc -lrdimon -nostartfiles -Wl,--gc-sections
+#	$(CC) main.o sorts.o startup.o -T startup.ld -o $(TARGET) -mcpu=$(CORE) -lc -lrdimon
 #-L/home/dkang/WORK/R52/gcc-arm-none-eabi-7-2018-q2-update/lib/gcc/arm-none-eabi/7.3.1 -lgcc 
 #-L/home/dkang/WORK/R52/gcc-arm-none-eabi-7-2018-q2-update/arm-none-eabi/lib -lg -lstdc++ -lc -lm
 #	$(LD) main.o sorts.o startup.o --scatter=scatter.scat --entry=Start -o $(TARGET) --info=totals --info=unused
 
-main.o : main.c
-	$(CC) -c $(CCOPT) -mcpu=$(CORE) main.c
+%.o : %.c
+	$(CC) -c $(CCOPT) -mcpu=$(CORE) -o $@ $^
 
-mailbox.o : mailbox.c
-	$(CC) -c $(CCOPT) -mcpu=$(CORE) mailbox.c
-
-command.o : command.c
-	$(CC) -c $(CCOPT) -mcpu=$(CORE) command.c
-
-sorts.o : sorts.c
-	$(CC) -c $(CCOPT) -mcpu=$(CORE) sorts.c
-
-startup.o : startup.s
-	$(CC) -c $(CCOPT) -mcpu=$(CORE) -x assembler-with-cpp startup.s -o startup.o
-#	$(AS) $(AOPT) startup.s
-
-uart.o : uart.c
-	$(CC) -c $(CCOPT) -mcpu=$(CORE) uart.c -o uart.o
-
-printf.o : printf.c
-	$(CC) -c $(CCOPT) -mcpu=$(CORE) printf.c -o printf.o
-
-#gicv3.o : gicv3.c
-#	$(CC) -c $(CCOPT) -mcpu=$(CORE) gicv3.c -o gicv3.o
+%.o : %.s
+	$(CC) -c $(CCOPT) -mcpu=$(CORE) -x assembler-with-cpp -o $@ $^
+#	$(AS) $(AOPT) -o $@ $^
