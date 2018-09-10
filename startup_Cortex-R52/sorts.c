@@ -20,6 +20,8 @@
 #define LOG10_N         6
 #define N_FORMAT        "%06d"
 
+static char buffer[N*(LOG10_N+1)];
+
 clock_t clock() {
     return 0; // NOT IMPLEMENTED
 }
@@ -104,7 +106,6 @@ int qs_string_compare(const void *a, const void *b)
 void compare_sorts(void)
 {
     char *strings[N], *strings_copy[N];
-    char buffer[N*(LOG10_N+1)];
     char *p;
     clock_t starttime, endtime;
     int i;
