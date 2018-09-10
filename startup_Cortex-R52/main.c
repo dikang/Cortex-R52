@@ -15,6 +15,7 @@
 
 #define TEST_FLOAT
 // #define TEST_SORT
+// #define TEST_MAILBOX
 
 extern unsigned char _text_start;
 extern unsigned char _text_end;
@@ -72,14 +73,20 @@ int main(void)
 #ifdef TEST_SORT
     /* Run the main application (sorts) */
     compare_sorts();
-/*    mbox_send(32);
-    mbox_send(33); */
 #endif // TEST_SORT
+
+#ifdef TEST_MAILBOX
+    /* Enables mailbox */
+    mbox_init(RTPS_TRCH_MBOX_BASE);
+    mbox_send(RTPS_TRCH_MBOX_BASE, 32);
+    mbox_send(RTPS_TRCH_MBOX_BASE, 33);
+#endif // TEST_MAILBOX
 
     printf("End of Runs. busy wait!!\r\n");
     while (1) {
     ;
     }
+
     /* this part is never reached */
     printf("End of Runs. Congratulation!!\r\n");
     printf("Reset!!\r\n");
