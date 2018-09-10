@@ -574,9 +574,12 @@ static int _vsnprintf(out_fct_type out, char* buffer, const size_t maxlen, const
       }
 #if defined(PRINTF_SUPPORT_FLOAT)
       case 'f' :
-      case 'F' :
-        idx = _ftoa(out, buffer, idx, maxlen, va_arg(va, double), precision, width, flags);
-        format++;
+      case 'F' : {
+            //double v = va_arg(va, double);
+            unsigned v = va_arg(va, unsigned);
+            idx = _ftoa(out, buffer, idx, maxlen, *(float *)&v, precision, width, flags);
+            format++;
+        }
         break;
 #endif  // PRINTF_SUPPORT_FLOAT
       case 'c' : {
