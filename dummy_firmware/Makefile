@@ -1,6 +1,5 @@
 
-#ARMGNU = arm-none-eabi
-ARMGNU = ../r52
+ARMGNU = arm-none-eabi
 #ARMGNU = aarch64-linux-gnu
 #ARMGNU = aarch64-poky-linux
 
