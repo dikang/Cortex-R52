@@ -2,7 +2,9 @@
 MEMORY
 {
     TCM_A (RWX) :         ORIGIN = 0x00000000, LENGTH = 0x10000
-    /* TODO: TCM B, TCM C, DDR */
+    TCM_B (RWX) :         ORIGIN = 0x00020000, LENGTH = 0x10000
+    /* TODO: TCM C (not in device tree) */
+    /* TODO: DDR */
 }
 
 /* For now we put everything in TCM A */
@@ -29,4 +31,9 @@ SECTIONS
     end = .;
     __stack_start__ = __data_end__;
     __stack_end__ = LENGTH(TCM_A) - 4;
+
+   __tcm_a_start__ = ORIGIN(TCM_A);
+   __tcm_a_end__ = ORIGIN(TCM_A) + LENGTH(TCM_A);
+   __tcm_b_start__ = ORIGIN(TCM_B);
+   __tcm_b_end__ = ORIGIN(TCM_B) + LENGTH(TCM_B);
 }

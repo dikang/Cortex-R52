@@ -219,15 +219,12 @@ EL2_Reset_Handler:
 	/* DK's test for EL2 MPU */
 
         // Region 0 - Code
-#DK        LDR     r1, =Image$$CODE$$Base
-#	mov     r1, #1048576
-	mov     r1, #0x100000
+        LDR     r1, =__text_start__
+	mov     r1, #0x0
         LDR     r2, =((Non_Shareable<<3) | (RO_Access<<1))
         ORR     r1, r1, r2
         MCR     p15, 4, r1, c6, c8, 0                   // write HPRBAR0
-#DK        LDR     r1, =Image$$CODE$$Limit
-#	mov     r1, #18874368
-	mov     r1, #0x120000
+        LDR     r1, =__text_end__
         ADD     r1, r1, #63
         BFC     r1, #0, #6                              // align Limit to 64bytes
         LDR     r2, =((AttrIndx0<<1) | (ENable))
@@ -235,15 +232,11 @@ EL2_Reset_Handler:
         MCR     p15, 4, r1, c6, c8, 1                   // write HPRLAR0
 
         // Region 1 - Data
-#DK        LDR     r1, =Image$$DATA$$Base
-#	mov     r1, #19922944
-	mov     r1, #0x130000
+        LDR     r1, =__data_start__
         LDR     r2, =((Non_Shareable<<3) | (RW_Access<<1))
         ORR     r1, r1, r2
         MCR     p15, 4, r1, c6, c8, 4                   // write HPRBAR1
-#DK        LDR     r1, =Image$$DATA$$ZI$$Limit
-#	mov     r1, #20971520
-	mov     r1, #0x140000
+        LDR     r1, =__data_end__
         ADD     r1, r1, #63
         BFC     r1, #0, #6                              // align Limit to 64bytes
         LDR     r2, =((AttrIndx0<<1) | (ENable))
@@ -251,15 +244,11 @@ EL2_Reset_Handler:
         MCR     p15, 4, r1, c6, c8, 5                   // write HPRLAR1
 
         // Region 2 - Stack-Heap
-#DK        LDR     r1, =Image$$ARM_LIB_HEAP$$Base
-#	mov     r1, #23068672
-	mov     r1, #0x160000
+        LDR     r1, =__stack_start__
         LDR     r2, =((Non_Shareable<<3) | (RW_Access<<1))
         ORR     r1, r1, r2
         MCR     p15, 4, r1, c6, c9, 0                   // write HPRBAR2
-#DK        LDR     r1, =Image$$ARM_LIB_STACK$$ZI$$Limit
-#	mov     r1, #27262976
-	mov     r1, #0x1a0000
+        LDR     r1, =__stack_end__
         ADD     r1, r1, #63
         BFC     r1, #0, #6                              // align Limit to 64bytes
         LDR     r2, =((AttrIndx0<<1) | (ENable))
@@ -426,6 +415,7 @@ EL1_Reset_Handler:
 
         MCR p15, 0, r0, c7, c5, 0       // Invalidate entire instruction cache
 
+#if 0
         // Invalidate Data/Unified Caches
 
         MRC     p15, 1, r0, c0, c0, 1      // Read CLIDR
@@ -471,6 +461,7 @@ Skip:   ADD     r10, r10, #2               // Increment the cache number
         CMP     r3, r10
         BGT     Loop1
 
+#endif
 Finished:
 
 //----------------------------------------------------------------
@@ -531,17 +522,12 @@ Finished:
 // DK: Region 7: Peripherals Base = 0x30000000      Limit = 0xFFFFFFFF	     Device              Full access  Executable
 
         LDR     r0, =64
-
         // Region 0 - Code
-#DK        LDR     r1, =Image$$CODE$$Base
-#	mov     r1, #1048576
-	mov     r1, #0x100000
+        LDR     r1, =__text_start__
         LDR     r2, =((Non_Shareable<<3) | (RO_Access<<1))
         ORR     r1, r1, r2
         MCR     p15, 0, r1, c6, c8, 0                   // write PRBAR0
-#DK        LDR     r1, =Image$$CODE$$Limit
-#	mov     r1, #18874368
-	mov     r1, #0x120000
+        LDR     r1, =__text_end__
         ADD     r1, r1, #63
         BFC     r1, #0, #6                              // align Limit to 64bytes
         LDR     r2, =((AttrIndx0<<1) | (ENable))
@@ -549,15 +535,11 @@ Finished:
         MCR     p15, 0, r1, c6, c8, 1                   // write PRLAR0
 
         // Region 1 - Data
-#DK        LDR     r1, =Image$$DATA$$Base
-#	mov     r1, #19922944
-	mov     r1, #0x130000
+        LDR     r1, =__data_start__
         LDR     r2, =((Non_Shareable<<3) | (RW_Access<<1))
         ORR     r1, r1, r2
         MCR     p15, 0, r1, c6, c8, 4                   // write PRBAR1
-#DK        LDR     r1, =Image$$DATA$$ZI$$Limit
-#	mov     r1, #20971520
-	mov     r1, #0x140000
+        LDR     r1, =__data_end__
         ADD     r1, r1, #63
         BFC     r1, #0, #6                              // align Limit to 64bytes
         LDR     r2, =((AttrIndx0<<1) | (ENable))
@@ -565,15 +547,11 @@ Finished:
         MCR     p15, 0, r1, c6, c8, 5                   // write PRLAR1
 
         // Region 2 - Stack-Heap
-#DK        LDR     r1, =Image$$ARM_LIB_HEAP$$Base
-#	mov     r1, #23068672
-	mov     r1, #0x160000
+        LDR     r1, =__stack_start__
         LDR     r2, =((Non_Shareable<<3) | (RW_Access<<1))
         ORR     r1, r1, r2
         MCR     p15, 0, r1, c6, c9, 0                   // write PRBAR2
-#DK        LDR     r1, =Image$$ARM_LIB_STACK$$ZI$$Limit
-#	mov     r1, #27262976
-	mov     r1, #0x1a0000
+        LDR     r1, =__stack_end__
         ADD     r1, r1, #63
         BFC     r1, #0, #6                              // align Limit to 64bytes
         LDR     r2, =((AttrIndx0<<1) | (ENable))
@@ -593,49 +571,46 @@ Finished:
         MCR     p15, 0, r1, c6, c9, 5                   // write PRLAR3
 
 #ifdef TCM
+#if 0 // Disabling this definition of ATCM, because the above .text, .data, and stack are in TCM A
         // Region 4 - ATCM
-#DK        LDR     r1, =Image$$ATCM$$Base
-	LDR	r1, =0
+	LDR	r1, =__tcm_a_start__
         LDR     r2, =((Non_Shareable<<3) | (RW_Access<<1))
         ORR     r1, r1, r2
         MCR     p15, 0, r1, c6, c10, 0                  // write PRBAR4
-#DK        LDR     r1, =Image$$ATCM$$Limit
-	LDR	r1, =0x4000
+	LDR	r1, =__tcm_a_end__
         ADD     r1, r1, #63
         BFC     r1, #0, #6                              // align Limit to 64bytes
         LDR     r2, =((AttrIndx1<<1) | (ENable))
         ORR     r1, r1, r2
         MCR     p15, 0, r1, c6, c10, 1                  // write PRLAR4
+#endif // ATCM
 
         // Region 5 - BTCM
-#DK        LDR     r1, =Image$$BTCM$$Base
-	LDR	r1, =0x4000
+	LDR	r1, =__tcm_b_start__
         LDR     r2, =((Non_Shareable<<3) | (RW_Access<<1))
         ORR     r1, r1, r2
         MCR     p15, 0, r1, c6, c10, 4                  // write PRBAR5
-#DK        LDR     r1, =Image$$BTCM$$Limit
-	LDR	r1, =0x8000
+	LDR	r1, =__tcm_b_end__
         ADD     r1, r1, #63
         BFC     r1, #0, #6                              // align Limit to 64bytes
         LDR     r2, =((AttrIndx0<<1) | (ENable))
         ORR     r1, r1, r2
         MCR     p15, 0, r1, c6, c10, 5                  // write PRLAR5
 
+#if 0 // Disabling CTCM because not in device tree
         // Region 6 - CTCM
-#DK        LDR     r1, =Image$$CTCM$$Base
-	LDR	r1, =0x8000
+	LDR	r1, =__tcm_c_start__
         LDR     r2, =((Non_Shareable<<3) | (RW_Access<<1))
         ORR     r1, r1, r2
         MCR     p15, 0, r1, c6, c11, 0                  // write PRBAR6
-#DK        LDR     r1, =Image$$CTCM$$Limit
-	LDR	r1, =0xc000
+	LDR	r1, =__tcm_c_end__
         ADD     r1, r1, #63
         BFC     r1, #0, #6                              // align Limit to 64bytes
         LDR     r2, =((AttrIndx0<<1) | (ENable))
         ORR     r1, r1, r2
         MCR     p15, 0, r1, c6, c11, 1                  // write PRLAR6
-#endif
-#endif
+#endif // CTCM
+#endif // TCM
 
         // Region 7 - Peripherals
         LDR     r1, =0x30000000
@@ -648,19 +623,6 @@ Finished:
         LDR     r2, =((AttrIndx0<<1) | (ENable))
         ORR     r1, r1, r2
         MCR     p15, 0, r1, c6, c11, 5                   // write PRLAR7
-
-        // Region 8 - Mailbox
-        LDR     r1, =0x30000000
-        LDR     r2, =((Non_Shareable<<3) | (RW_Access<<1))
-        ORR     r1, r1, r2
-        MCR     p15, 0, r1, c6, c12, 0                   // write PRBAR8
-        LDR     r1, =0x30ffffff 
-        ADD     r1, r1, #63
-        BFC     r1, #0, #6                              // align Limit to 64bytes
-        LDR     r2, =((AttrIndx0<<1) | (ENable))
-        ORR     r1, r1, r2
-        MCR     p15, 0, r1, c6, c12, 1                   // write PRLAR8
-
 
     // MAIR0 configuration
         MRC p15, 0, r0, c10, c2, 0      // Read MAIR0 into r0
@@ -751,8 +713,7 @@ cpu0:
 # but it is disabled for now.
 #	MSR     CPSR_c, #0x10
 #DK's test to set up stack poointer
-	movw	r13, #0
-	movt	r13, #0x1a
+        LDR     r13, =__stack_end__;
         B       main
 
 //    .size Reset_Handler, . - Reset_Handler	// Original
