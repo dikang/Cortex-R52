@@ -15,7 +15,7 @@
 
 #define TEST_FLOAT
 // #define TEST_SORT
-// #define TEST_MAILBOX
+#define TEST_MAILBOX
 
 extern unsigned char _text_start;
 extern unsigned char _text_end;
@@ -77,9 +77,8 @@ int main(void)
 
 #ifdef TEST_MAILBOX
     /* Enables mailbox */
-    mbox_init(RTPS_TRCH_MBOX_BASE);
-    mbox_send(RTPS_TRCH_MBOX_BASE, 32);
-    mbox_send(RTPS_TRCH_MBOX_BASE, 33);
+    mbox_init(RTPS_TRCH_MBOX0_BASE);
+    mbox_send(RTPS_TRCH_MBOX1_BASE, 0xA5);
 #endif // TEST_MAILBOX
 
     printf("End of Runs. busy wait!!\r\n");
@@ -95,4 +94,16 @@ int main(void)
     printf("Does reset work?\r\n");
     
     return 0;
+}
+
+// These are in main, not in mailbox.c, because different users of mailbox.c
+// (sender vs. receiver) receive from different indexes. This way mailbox.c
+// can be shared between sender and receiver.
+void mbox_trch_have_data_isr()
+{
+     uint8_t msg = mbox_have_data_isr(RTPS_TRCH_MBOX0_BASE);
+}
+void mbox_hpps_have_data_isr()
+{
+     uint8_t msg = mbox_have_data_isr(HPPS_RTPS_MBOX0_BASE);
 }
