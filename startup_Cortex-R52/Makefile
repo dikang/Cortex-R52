@@ -35,6 +35,17 @@ RM=rm -f $(1)
 endif
 endif
 
+ASM_OBJS = \
+	startup.o \
+
+C_OBJS = \
+	main.o \
+	sorts.o \
+	uart.o \
+	printf.o \
+	mailbox.o \
+	float.o
+
 
 all: $(TARGET)
 	$(call DONE,$(TARGET))
@@ -42,7 +53,7 @@ all: $(TARGET)
 rebuild: clean all
 
 clean:
-	$(call RM,*.o)
+	$(call RM,*.o,*.d)
 	$(call RM,$(TARGET))
 
 
@@ -60,7 +71,7 @@ LDFLAG = -mfloat-abi=hard -mfpu=vfpv3
 # Enable use of TCM in assembler code with -DTCM
 
 #$(TARGET) : main.o sorts.o startup.o scatter.scat
-$(TARGET) : startup.ld startup.o main.o sorts.o uart.o printf.o mailbox.o float.o
+$(TARGET) : startup.ld $(ASM_OBJS) $(C_OBJS)
 	$(CC) -T $^ --entry=Start -o $(TARGET) -mcpu=$(CORE) $(LDFLAG) -lgcc -lc -lrdimon -Wl,--gc-sections -static
 	$(OBJDUMP) $(TARGET) -D > all.dis.s
 	$(OBJDUMP) startup.o  -D > startup.dis.s
@@ -71,8 +82,10 @@ $(TARGET) : startup.ld startup.o main.o sorts.o uart.o printf.o mailbox.o float.
 #	$(LD) main.o sorts.o startup.o --scatter=scatter.scat --entry=Start -o $(TARGET) --info=totals --info=unused
 
 %.o : %.c
-	$(CC) -c $(CCOPT) -mcpu=$(CORE) -o $@ $^
+	$(CC) -MMD -c $(CCOPT) -mcpu=$(CORE) -o $@ $<
 
 %.o : %.s
-	$(CC) -c $(CCOPT) -mcpu=$(CORE) -x assembler-with-cpp -o $@ $^
+	$(CC) -c $(CCOPT) -mcpu=$(CORE) -x assembler-with-cpp -o $@ $<
 #	$(AS) $(AOPT) -o $@ $^
+
+-include $(C_OBJS:.o=.d)
