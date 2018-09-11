@@ -415,7 +415,6 @@ EL1_Reset_Handler:
 
         MCR p15, 0, r0, c7, c5, 0       // Invalidate entire instruction cache
 
-#if 0
         // Invalidate Data/Unified Caches
 
         MRC     p15, 1, r0, c0, c0, 1      // Read CLIDR
@@ -461,7 +460,6 @@ Skip:   ADD     r10, r10, #2               // Increment the cache number
         CMP     r3, r10
         BGT     Loop1
 
-#endif
 Finished:
 
 //----------------------------------------------------------------
