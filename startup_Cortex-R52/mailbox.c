@@ -16,7 +16,7 @@
 
 void mbox_init(volatile uint32_t * base)
 {
-    volatile uint32_t *addr = (volatile uint32_t *)(base + MBOX_REG_MAIL1_CNF);
+    volatile uint32_t *addr = (volatile uint32_t *)((uint8_t *)base + MBOX_REG_MAIL1_CNF);
     uint32_t val = MBOX_BIT_IHAVEDATAIRQEN;
     printf("mbox_init: rcv irq en: %p <- %08lx\r\n", addr, val);
     *addr = val;
@@ -24,7 +24,7 @@ void mbox_init(volatile uint32_t * base)
 
 void mbox_send(volatile uint32_t *base, uint8_t msg)
 {
-    volatile uint32_t *slot = (volatile uint32_t *)(base + MBOX_REG_MAIL0);
+    volatile uint32_t *slot = (volatile uint32_t *)((uint8_t *)base + MBOX_REG_MAIL0);
     uint32_t val = msg << OFFSET_PAYLOAD; // see layout above
     printf("mbox_send: %p <- %08lx\r\n", slot, val);
     *slot = val;
@@ -32,7 +32,7 @@ void mbox_send(volatile uint32_t *base, uint8_t msg)
 
 uint8_t mbox_receive(volatile uint32_t *base)
 {
-    volatile uint32_t *slot = (volatile uint32_t *)(base + MBOX_REG_MAIL1);
+    volatile uint32_t *slot = (volatile uint32_t *)((uint8_t *)base + MBOX_REG_MAIL1);
     uint32_t val = *slot;
     printf("mbox_receive: %p -> %08lx\r\n", slot, val);
     uint8_t msg = val >> OFFSET_PAYLOAD; // see layout above
