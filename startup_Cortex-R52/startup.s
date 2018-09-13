@@ -189,7 +189,19 @@ EL1_Reserved:
         B   EL1_Reserved
 .type EL1_IRQ_Handler, "function"
 EL1_IRQ_Handler:
-        B   EL1_IRQ_Handler
+        PUSH {r0}
+EL1_IRQ_Handler_LOOP:
+        MOV r0, #0  /* hack for GDB to interrupt here, since breakpt doesn't work */
+        CMP r0, #0
+        BEQ EL1_IRQ_Handler_DOLOOP
+
+        PUSH {r14}
+        BL  irq_handler
+        POP {r14}
+        POP {r0}
+        ERET /* does not work: SPSR (EL1) is 0x0 */
+EL1_IRQ_Handler_DOLOOP:
+        B   EL1_IRQ_Handler_LOOP
 .type EL1_FIQ_Handler, "function"
 EL1_FIQ_Handler:
         B   EL1_FIQ_Handler

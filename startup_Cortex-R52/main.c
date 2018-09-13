@@ -96,6 +96,10 @@ int main(void)
     return 0;
 }
 
+void irq_handler() {
+    printf("irq\r\n");
+}
+
 // These are in main, not in mailbox.c, because different users of mailbox.c
 // (sender vs. receiver) receive from different indexes. This way mailbox.c
 // can be shared between sender and receiver.
