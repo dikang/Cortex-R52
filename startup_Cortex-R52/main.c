@@ -81,9 +81,9 @@ int main(void)
     mbox_send(RTPS_TRCH_MBOX1_BASE, 0xA5);
 #endif // TEST_MAILBOX
 
-    printf("End of Runs. busy wait!!\r\n");
+    printf("Done. Waiting for interrupt...\r\n");
     while (1) {
-    ;
+        asm("wfi");
     }
 
     /* this part is never reached */
