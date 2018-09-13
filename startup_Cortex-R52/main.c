@@ -16,6 +16,7 @@
 #define TEST_FLOAT
 // #define TEST_SORT
 #define TEST_MAILBOX
+// #define TEST_SOFT_RESET
 
 extern unsigned char _text_start;
 extern unsigned char _text_end;
@@ -81,17 +82,19 @@ int main(void)
     mbox_send(RTPS_TRCH_MBOX1_BASE, 0xA5);
 #endif // TEST_MAILBOX
 
-    printf("Done. Waiting for interrupt...\r\n");
+    printf("Done.\r\n");
+
+#ifdef TEST_SOFT_RESET
+    printf("Resetting...\r\n");
+    /* this will generate "Undefined Instruction exception because HRMR is accessible only at EL2 */
+    soft_reset();
+    printf("ERROR: reached unrechable code: soft reset failed\r\n");
+#endif // TEST_SOFT_RESET
+
+    printf("Waiting for interrupt...\r\n");
     while (1) {
         asm("wfi");
     }
-
-    /* this part is never reached */
-    printf("End of Runs. Congratulation!!\r\n");
-    printf("Reset!!\r\n");
-    /* this will generate "Undefined Instruction exception because HRMR is accessible only at EL2 */
-    soft_reset();
-    printf("Does reset work?\r\n");
     
     return 0;
 }
