@@ -384,8 +384,7 @@ EL1_Reset_Handler:
         //
         MRC  p15, 0, r1, c0, c0, 5      // Read CPU ID register
         AND  r1, r1, #0x03              // Mask off, leaving the CPU ID field
-#DK        LDR  r0, =Image$$ARM_LIB_STACK$$ZI$$Limit
-	LDR  r0, =(0x1a0000)
+        LDR  r0, =__stack_end__
         SUB  r0, r0, r1, lsl #14
 
         CPS #Mode_ABT
@@ -711,7 +710,7 @@ cpu0:
 # but it is disabled for now.
 #	MSR     CPSR_c, #0x10
 #DK's test to set up stack poointer
-        LDR     r13, =__stack_end__;
+        LDR     r13, =__stack_end__ - 0x2000 /* 0x200 (STACKSIZE) * 5 (ABT,IRQ,FIQ,UNDEF,SVC) = 0xA00, and per-CPU offset 0x1000 * cpuidx */
         B       main
 
 //    .size Reset_Handler, . - Reset_Handler	// Original

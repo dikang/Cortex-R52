@@ -30,6 +30,7 @@ SECTIONS
     } > TCM_A
     end = .;
     __stack_start__ = __data_end__;
+    /* __stack_end__ = __sys_stack_end__ - 0x2000; */ /* 0x200 * 5 (ABT,IRQ,FIQ,UNDEF,SVC) = 0xA00, and per-CPU offset 0x1000 * cpuidx */
     __stack_end__ = LENGTH(TCM_A) - 4;
 
    __tcm_a_start__ = ORIGIN(TCM_A);
