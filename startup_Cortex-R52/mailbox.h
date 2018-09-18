@@ -7,6 +7,13 @@
 #define HPPS_RTPS_MBOX_BASE 	((volatile uint32_t *)0xf9230000)
 #define HPPS_TRCH_MBOX_BASE 	((volatile uint32_t *)0xf9220000)
 
+#define RTPS_TRCH_MAILBOX_IRQ_0		161
+#define RTPS_TRCH_MAILBOX_IRQ_1		162
+#define HPPS_TRCH_MAILBOX_IRQ_0		163
+#define HPPS_TRCH_MAILBOX_IRQ_1		164
+#define HPPS_RTPS_MAILBOX_IRQ_0		165
+#define HPPS_RTPS_MAILBOX_IRQ_1		166
+
 
 #define RTPS_TRCH_MBOX0_BASE	((volatile uint32_t *)((uint8_t *)RTPS_TRCH_MBOX_BASE + MBOX_MAIL0))
 #define RTPS_TRCH_MBOX1_BASE	((volatile uint32_t *)((uint8_t *)RTPS_TRCH_MBOX_BASE + MBOX_MAIL1))
@@ -17,10 +24,6 @@
 #define HPPS_RTPS_MBOX0_BASE 	((volatile uint32_t *)((uint8_t *)HPPS_RTPS_MBOX_BASE + MBOX_MAIL0))
 #define HPPS_RTPS_MBOX1_BASE 	((volatile uint32_t *)((uint8_t *)HPPS_RTPS_MBOX_BASE + MBOX_MAIL1))
 
-
-#define RTPS_TRCH_MBOX_HAVE_DATA_IRQ    162
-#define HPPS_TRCH_MBOX_HAVE_DATA_IRQ    164
-#define HPPS_RTPS_MBOX_HAVE_DATA_IRQ    166
 
 #define MBOX_MAIL0 0x80
 #define MBOX_MAIL1 0xA0
