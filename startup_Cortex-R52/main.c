@@ -99,18 +99,31 @@ int main(void)
     return 0;
 }
 
-void irq_handler() {
-    printf("irq\r\n");
-}
-
 // These are in main, not in mailbox.c, because different users of mailbox.c
 // (sender vs. receiver) receive from different indexes. This way mailbox.c
 // can be shared between sender and receiver.
 void mbox_trch_have_data_isr()
 {
      uint8_t msg = mbox_have_data_isr(RTPS_TRCH_MBOX0_BASE);
+     printf("rcved msg from TRCH: 0x%x\r\n", msg);
 }
 void mbox_hpps_have_data_isr()
 {
-     uint8_t msg = mbox_have_data_isr(HPPS_RTPS_MBOX0_BASE);
+     uint8_t msg = mbox_have_data_isr(HPPS_RTPS_MBOX1_BASE);
+     printf("rcved msg from RTPS: 0x%x\r\n", msg);
+}
+
+void irq_handler(unsigned irq) {
+    printf("IRQ #%u\r\n", irq);
+    switch (irq) {
+        case RTPS_TRCH_MAILBOX_IRQ_0:
+            mbox_trch_have_data_isr();
+            break;
+        case HPPS_RTPS_MAILBOX_IRQ_1:
+            mbox_hpps_have_data_isr();
+            break;
+        default:
+            printf("No ISR registered for IRQ #%u\r\n", irq);
+            break;
+    }
 }
