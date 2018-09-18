@@ -189,7 +189,17 @@ EL1_Reserved:
         B   EL1_Reserved
 .type EL1_IRQ_Handler, "function"
 EL1_IRQ_Handler:
-        ERET
+        SUB lr, #4  // undo auto offset to get preferred ret address (ARMv8-A/R Reference, Table B1-7, IRQ/FIQ row)
+        SRSDB sp!, #0b10010
+        PUSH {r0} // save, because we are going to use
+        MRC p15, 0, r0, c12, c12, 0 // r1 <- IRCC_IAR1 (INTID)	// coproc, #opcode1, Rt, CRn, CRm{, #opcode2}
+        PUSH {r0} // save INTID before we modify it and before irq_handler clobbers it
+        SUB r0, #32 /* convert INTID to IRQ # (as in Qemu device tree) TODO: does this offset have a name? */
+        BL irq_handler // arg passed in r0 (IRQ #)
+        POP {r0} // restore INTID
+        MCR p15, 0, r0, c12, c12, 1 // ICC_EOIR1 <- r0 (INTID)	// coproc, #opcode1, Rt, CRn, CRm{, #opcode2}
+        POP {r0} // restore the registers we used
+        RFEIA sp!
 .type EL1_FIQ_Handler, "function"
 EL1_FIQ_Handler:
         B   EL1_FIQ_Handler
