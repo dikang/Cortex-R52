@@ -12,10 +12,12 @@
 #include "uart.h"
 #include "float.h"
 #include "mailbox.h"
+#include "command.h"
 
 #define TEST_FLOAT
 // #define TEST_SORT
-#define TEST_MAILBOX
+#define TEST_RTPS_TRCH_MAILBOX
+#define TEST_HPPS_RTPS_MAILBOX
 // #define TEST_SOFT_RESET
 
 extern unsigned char _text_start;
@@ -76,11 +78,14 @@ int main(void)
     compare_sorts();
 #endif // TEST_SORT
 
-#ifdef TEST_MAILBOX
-    /* Enables mailbox */
+#ifdef TEST_RTPS_TRCH_MAILBOX /* Message flow: RTPS -> TRCH -> RTPS */
     mbox_init(RTPS_TRCH_MBOX0_BASE);
     mbox_send(RTPS_TRCH_MBOX1_BASE, 0xA5);
-#endif // TEST_MAILBOX
+#endif // TEST_RTPS_TRCH_MAILBOX
+
+#ifdef TEST_HPPS_RTPS_MAILBOX /* Message flow: HPPS -> RTPS -> HPPS */
+    mbox_init(HPPS_RTPS_MBOX1_BASE);
+#endif // TEST_HPPS_RTPS_MAILBOX
 
     printf("Done.\r\n");
 
@@ -110,7 +115,8 @@ void mbox_trch_have_data_isr()
 void mbox_hpps_have_data_isr()
 {
      uint8_t msg = mbox_have_data_isr(HPPS_RTPS_MBOX1_BASE);
-     printf("rcved msg from RTPS: 0x%x\r\n", msg);
+     printf("rcved msg from HPPS: 0x%x\r\n", msg);
+     cmd_handle(HPPS_RTPS_MBOX0_BASE, msg);
 }
 
 void irq_handler(unsigned irq) {
