@@ -13,6 +13,7 @@
 #include "float.h"
 #include "mailbox.h"
 #include "command.h"
+#include "gic.h"
 
 #define TEST_FLOAT
 // #define TEST_SORT
@@ -79,11 +80,13 @@ int main(void)
 #endif // TEST_SORT
 
 #ifdef TEST_RTPS_TRCH_MAILBOX /* Message flow: RTPS -> TRCH -> RTPS */
+    gic_enable_irq(RTPS_TRCH_MAILBOX_IRQ_0, IRQ_TYPE_EDGE);
     mbox_init(RTPS_TRCH_MBOX0_BASE);
     mbox_send(RTPS_TRCH_MBOX1_BASE, 0xA5);
 #endif // TEST_RTPS_TRCH_MAILBOX
 
 #ifdef TEST_HPPS_RTPS_MAILBOX /* Message flow: HPPS -> RTPS -> HPPS */
+    gic_enable_irq(HPPS_RTPS_MAILBOX_IRQ_1, IRQ_TYPE_EDGE);
     mbox_init(HPPS_RTPS_MBOX1_BASE);
 #endif // TEST_HPPS_RTPS_MAILBOX
 

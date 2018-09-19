@@ -664,21 +664,6 @@ Finished:
 ret_secure:
 	B 	gic_init_secure_percpu
 ret_secure_percpu:
-        /* GICD_ISENABLER5 or 6? (just do 5, 6, 7) */
-	ldr	r0, =GICD_BASE
-	MOV	r1, #0xffffffff
-	STR	r1, [r0, #0x114]
-	STR	r1, [r0, #0x118]
-	STR	r1, [r0, #0x11a]
-        /* GICD_ICFGR10-14? (just do 10-14) */
-	ldr	r0, =GICD_BASE
-	ldr	r1, =0xaaaaaaaa
-	STR	r1, [r0, #0xc24]
-	STR	r1, [r0, #0xc28]
-	STR	r1, [r0, #0xc2a]
-	STR	r1, [r0, #0xc30]
-	STR	r1, [r0, #0xc34]
-	STR	r1, [r0, #0xc38]
 #endif
 //----------------------------------------------------------------
 // Enable MPU and branch to C library init

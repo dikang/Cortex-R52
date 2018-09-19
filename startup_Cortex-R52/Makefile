@@ -45,6 +45,7 @@ C_OBJS = \
 	printf.o \
 	mailbox.o \
 	command.o \
+	gic.o \
 	float.o
 
 
