@@ -4,8 +4,8 @@
 #include <stdint.h>
 
 #define RTPS_TRCH_MBOX_BASE	((volatile uint32_t *)0x3000a000)
-#define HPPS_RTPS_MBOX_BASE 	((volatile uint32_t *)0xf9230000)
-#define HPPS_TRCH_MBOX_BASE 	((volatile uint32_t *)0xf9220000)
+#define HPPS_RTPS_MBOX_BASE 	((volatile uint32_t *)0xfff60000)
+#define HPPS_TRCH_MBOX_BASE 	((volatile uint32_t *)0xfff50000)
 
 #define RTPS_TRCH_MAILBOX_IRQ_0		161
 #define RTPS_TRCH_MAILBOX_IRQ_1		162

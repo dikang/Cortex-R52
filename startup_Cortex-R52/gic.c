@@ -3,7 +3,7 @@
 #include "printf.h"
 #include "gic.h"
 
-#define GIC_BASE ((volatile uint32_t *)0xf9a00000)
+#define GIC_BASE ((volatile uint32_t *)0x30e00000)
 
 #define GICD_ISENABLER 0x0100
 #define GICD_ICFGR     0x0C00
