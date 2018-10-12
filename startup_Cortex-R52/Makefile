@@ -11,6 +11,7 @@
 
 
 TARGET=startup_Cortex-R52.axf
+BAREMETAL=baremetal-R52.axf
 
 CC=arm-none-eabi-gcc
 OBJDUMP=arm-none-eabi-objdump
@@ -38,6 +39,9 @@ endif
 ASM_OBJS = \
 	startup.o \
 
+BAREMETAL_OBJS = \
+	baremetal_startup.o \
+
 C_OBJS = \
 	main.o \
 	sorts.o \
@@ -48,15 +52,27 @@ C_OBJS = \
 	gic.o \
 	float.o
 
+C_OBJS_BM = \
+	main.o \
+	sorts.o \
+	uart.o \
+	printf.o \
+	mailbox.o \
+	command.o \
+	gic.o \
+	float.o
 
-all: $(TARGET)
+
+all: $(TARGET) $(BAREMETAL)
 	$(call DONE,$(TARGET))
+	$(call DONE,$(BAREMETAL))
 
 rebuild: clean all
 
 clean:
 	$(call RM,*.o,*.d)
 	$(call RM,$(TARGET))
+	$(call RM,$(BAREMETAL))
 
 
 CORE=cortex-r52
@@ -83,6 +99,10 @@ $(TARGET) : startup.ld $(ASM_OBJS) $(C_OBJS)
 #-L/home/dkang/WORK/R52/gcc-arm-none-eabi-7-2018-q2-update/arm-none-eabi/lib -lg -lstdc++ -lc -lm
 #	$(LD) main.o sorts.o startup.o --scatter=scatter.scat --entry=Start -o $(TARGET) --info=totals --info=unused
 
+$(BAREMETAL) : baremetal.ld $(BAREMETAL_OBJS) $(C_OBJS_BM)
+	$(CC) -T $^ --entry=Start -o $(BAREMETAL) -mcpu=$(CORE) $(LDFLAG) -lgcc -lc -lrdimon -Wl,--gc-sections -static
+	$(OBJDUMP) $(BAREMETAL) -D > baremetal.list
+	$(OBJDUMP) baremetal_startup.o  -D > baremetal_startup.list
 %.o : %.c
 	$(CC) -MMD -c $(CCOPT) -mcpu=$(CORE) -o $@ $<
 
@@ -91,3 +111,5 @@ $(TARGET) : startup.ld $(ASM_OBJS) $(C_OBJS)
 #	$(AS) $(AOPT) -o $@ $^
 
 -include $(C_OBJS:.o=.d)
+
+-include $(C_OBJS_BM:.o=.d)
